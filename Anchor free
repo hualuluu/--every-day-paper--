@@ -4,3 +4,17 @@
   好的论文笔记：https://hellozhaozheng.github.io/z_post/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-FCOS-CVPR2019/
 ３．CenterNet
   我的论文笔记：https://blog.csdn.net/weixin_38715903/article/details/98039181
+4.Region Proposal by Guided Anchoring：构建GA-RPN网络，利用语义信息指导anchor。【two-stage/one-stage】
+  好的论文笔记：https://blog.sunnyan.cn/2019/02/13/region-proposal-by-guided-anchoring/
+              https://blog.csdn.net/qq_37014750/article/details/86499652
+  预知识：Masked卷积
+   先预测anchor的形状大小及位置，再在这些anchor的基础上预测目标；
+   生成的anchor可以不用根据目标尺寸不同，人工调整参数;不依赖滑窗生成anchor，得到的anchors稀疏且质量高【使用DCN模型】;
+   首先通过FPN生成特征图：
+   －－anchor生成模型包含两个分支：
+      一个用于定位:预测anchor可能存在的位置，损失函数是Focal loss，【FPN生成特征图去生成anchor，且不同层FPN只预测在尺度设定范围内的目标】
+      一个用于形状预测：预测每个可能位置的anchor的尺寸大小【与GT有较高的IOU,且每个位置的大小都不一样，有且只有一个】，损失函数：Bounded IoU Loss：https://arxiv.org/abs/1711.00164
+   －－特征自适应部分：让特征与预测的Anchors保持尺度一致，【大一点的anchor对应的感受野应该大一点，小一点的anchor对应的感受野应该小一点】，使用了可变卷积的思想
+                    将预测的shape经过一个１*1的卷积得到卷积的offest，根据offset field进行3x3的可变形卷积就完成了对feature map的自适应。
+   所以总的loss包括anchor的两个（定位＋形状）加上检测部分的两个（分类与回归）；
+   正样本：在GT中心部分的点都为正样本；在GT内部但离中心点较远则为忽略区域，其他的为负样本。
