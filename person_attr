@@ -1,0 +1,4 @@
+1.Deep Imbalanced Attribute Classification using Visual Attention Aggregation (ECCV-2018): 
+   git:https://github.com/cvcode18/imbalanced_learning
+   -提出了一种损失函数处理样本不平衡问题。
+    改进：多尺度特征学习，采用注意力机制，采用Focal loss处理样本不平衡。
