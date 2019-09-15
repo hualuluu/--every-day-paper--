@@ -18,3 +18,45 @@
                     将预测的shape经过一个１*1的卷积得到卷积的offest，根据offset field进行3x3的可变形卷积就完成了对feature map的自适应。
    所以总的loss包括anchor的两个（定位＋形状）加上检测部分的两个（分类与回归）；
    正样本：在GT中心部分的点都为正样本；在GT内部但离中心点较远则为忽略区域，其他的为负样本。
+5.cornernet:
+【CornerNet会产生两个热力图：一个是左上角点热力图，一个右下角点热力图。热力图表示不同类别关键点的位置且为每个关键点赋予了置信度值。
+此外，它还预测了一个嵌入信息，为每个角点提供一组偏移值。这个嵌入信息用于识别两个角点是否来自同个目标。
+这个偏移值用于将角点从热力图重新映射回输入图像上。根据得分值大小，从热力图上分别获得左上角点和右下角点的前top-k个来生成目标框。
+计算一对角点的向量距离来确定这对角点是否来自同个目标。当一对角点的距离小于一个特定阈值，即生成一个目标框，目标框的置信度是这对角点热力值的平均值。】
+  论文链接：https://arxiv.org/abs/1808.01244
+  代码链接：https://github.com/umich-vl/CornerNet
+  创新:corner pooling,消除anchors
+  主要工作：１．基于多人姿态估计的Bottom-Up思想，首先同时预测定位框的顶点对（左上角和右下角）热点图和embedding vector（连接矢量），根据embedding vector对顶点进行分组。
+          【卷积网络为所有左上角输出heatmap，为所有右下角输出heatmap，并为每个检测到的角点输出一个嵌入矢量。 属于同一目标的两个角点的嵌入矢量是相似的】
+         　２．corner pooling池化方法，可以有效的从目标区域整体捕捉到左上和右下角点的位置信息【通常目标包围框的左上和右下角点并没有特殊的局部信息可以捕捉】
+          ３．骨干网使用Hourglass Network，骨干网的后段是两个预测模块，一个用来预测左上角点，一个用来预测右下角点，使用这两个模块的预测结果，将角点成对的分组到不同目标上（分组使用associative embedding方法），即得到了最终的单个或多个目标的检测结果。
+ 　好的笔记：https://blog.csdn.net/qq_38109843/article/details/89526785#Corner_Pooling_71
+           https://www.cnblogs.com/wzyuan/p/9895469.html
+６．CenterNet: Keypoint Triplets for Object Detection
+【CornerNet 缺点：由于目标的全局信息获取能力较弱，使得其性能受限，也就是说，每个目标由一对角点来表述，导致算法对目标框比较敏感，同时不知道哪些关键点该组成一对来构建成目标。】
+【通过一对角点关键点得到一个proposal区域，我们通过检测是否有同种类别的中心关键点出现在proposal的中心区域 来判断这个proposal是否真的是目标】
+    代码地址：https://github.com/Duankaiwen/CenterNet
+    文章链接：https://arxiv.org/abs/1904.08189
+    好的笔记：https://blog.csdn.net/Chunfengyanyulove/article/details/94430443
+    主旨－－１．根据cornernet的思想发展而来，在cornernet的立场上　增添了一个center keypoint
+            首先根据左上右下关键点预测出前top-k的bounding box，然后在这些box中的center region区域中观察是否含有center keypoint，
+            如果有并且bounding box的类别预测与center keypoint预测的类别相同，则保留。 这个Bbox的得分值等于 三个点（top-left, bottom-right, center keypoint）得分的平均值
+            【作者设置自动的center region划分，小目标大center region，大目标小center region】
+          ２．center pooling：【为什么要有它：物体的几何中心可能不会传达可识别性较强的模式（如人的头可识别性较强，却不是人体中心）。识别人的时候关键点可能对头部格外感兴趣】
+              步骤1: 对于特征图上的每一个像素，分别找到水平和垂直方向的最大值；步骤2: 将这2个最大值相加，用来表征当前位置为center keypoint的置信度。
+          ３．Cascade corner pooling：【使得原始corner pooling 模块具有感知内部信心的能力，corner pooling角点确实对边界特别敏感（因为是针对边界的特征信息做的池化操作，受边界信息变化影响较大】
+７．CornerNet-Lite：【基于conernet,提升速度】
+    arXiv: https://arxiv.org/abs/1904.08900
+    github: https://github.com/princeton-vl/CornerNet-Lite
+    【CornerNet的推理速度是其一个缺点，对于任意目标检测模型可以从两个方向提高其inference效率，
+    一个是降低处理的像素量，另一个是减少每个像素的处理过程。针对这两个方向，分别提出了CornerNet-Saccade及CornerNet-Squeeze，统称为CornerNet-Lite.】
+    
+
+
+
+８．FreeAnchor : Learning to Match Anchors for Visual Object Detection
+
+
+９．DuBox: No-Prior Box Objection Detection via Residual Dual Scale Detectors
+１０．Object as Distribution：https://arxiv.org/abs/1907.12929
+          
